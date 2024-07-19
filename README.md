@@ -12,7 +12,22 @@ pip install git+https://github.com/rsxdalv/extension_audiocraft_plus@main#egg=ex
 ## Usage
 
 ```python
-import extension_audiocraft_plus
+from extension_audiocraft_plus.main import ui_full, ui_full_inner
+
+launch_kwargs = {
+    "server_name": "0.0.0.0",
+    "server_port": 7861,
+    "inbrowser": True,
+    "share": False,
+}
+ui_full(launch_kwargs)
+
+# OR as a part of a bigger UI
+
+import gradio as gr
+with gr.Blocks() as demo:
+    ui_full_inner()
+    demo.queue().launch()
 ```
 
 ## This project allows audiocraft_plus to be developed independently of audiocraft itself, focusing on the UI. Additionally, the installation is no longer handled by this repository.

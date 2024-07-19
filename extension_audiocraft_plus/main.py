@@ -978,752 +978,754 @@ def toggle_audio_src(choice):
     else:
         return gr.update(source="upload", value=None, label="File")
 
-
 def ui_full(launch_kwargs):
     with gr.Blocks(title='AudioCraft Plus', theme=theme) as interface:
+        ui_full_inner()
+    interface.queue().launch(**launch_kwargs)
+
+def ui_full_inner():
+    gr.Markdown(
+        """
+        # AudioCraft Plus - v2.0.1
+
+        ### An All-in-One AudioCraft WebUI
+
+        Thanks to: facebookresearch, Camenduru, rkfg, oobabooga, AlexHK and GrandaddyShmax
+        """
+    )
+    with gr.Tab("MusicGen"):
         gr.Markdown(
             """
-            # AudioCraft Plus - v2.0.1
-
-            ### An All-in-One AudioCraft WebUI
-
-            Thanks to: facebookresearch, Camenduru, rkfg, oobabooga, AlexHK and GrandaddyShmax
+            ### MusicGen
             """
         )
-        with gr.Tab("MusicGen"):
-            gr.Markdown(
-                """
-                ### MusicGen
-                """
-            )
-            with gr.Row():
-                with gr.Column():
-                    with gr.Tab("Generation"):
-                        with gr.Accordion("Structure Prompts", open=False):
-                            with gr.Column():
-                                with gr.Row():
-                                    struc_prompts = gr.Checkbox(label="Enable", value=False, interactive=True, container=False)
-                                    bpm = gr.Number(label="BPM", value=120, interactive=True, scale=1, precision=0)
-                                    key = gr.Dropdown(["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "Bb", "B"], label="Key", value="C", interactive=True)
-                                    scale = gr.Dropdown(["Major", "Minor"], label="Scale", value="Major", interactive=True)
-                                with gr.Row():
-                                    global_prompt = gr.Text(label="Global Prompt", interactive=True, scale=3)
-                        with gr.Row():
-                            s = gr.Slider(1, max_textboxes, value=1, step=1, label="Prompts:", interactive=True, scale=2)
-                            #s_mode = gr.Radio(["segmentation", "batch"], value="segmentation", interactive=True, scale=1, label="Generation Mode")
+        with gr.Row():
+            with gr.Column():
+                with gr.Tab("Generation"):
+                    with gr.Accordion("Structure Prompts", open=False):
                         with gr.Column():
-                            textboxes = []
-                            prompts = []
-                            repeats = []
-                            calcs = []
                             with gr.Row():
-                                text0 = gr.Text(label="Input Text", interactive=True, scale=4)
-                                prompts.append(text0)
-                                drag0 = gr.Number(label="Repeat", value=1, interactive=True, scale=1)
-                                repeats.append(drag0)
-                                calc0 = gr.Text(interactive=False, value="00:00 - 00:00", scale=1, label="Time")
-                                calcs.append(calc0)
-                            for i in range(max_textboxes):
-                                with gr.Row(visible=False) as t:
-                                    text = gr.Text(label="Input Text", interactive=True, scale=3)
-                                    repeat = gr.Number(label="Repeat", minimum=1, value=1, interactive=True, scale=1)
-                                    calc = gr.Text(interactive=False, value="00:00 - 00:00", scale=1, label="Time")
-                                textboxes.append(t)
-                                prompts.append(text)
-                                repeats.append(repeat)
-                                calcs.append(calc)
-                            to_calc = gr.Button("Calculate Timings", variant="secondary")
-                        with gr.Row():
-                            duration = gr.Slider(minimum=1, maximum=300, value=10, step=1, label="Duration", interactive=True)
-                        with gr.Row():
-                            overlap = gr.Slider(minimum=1, maximum=29, value=12, step=1, label="Overlap", interactive=True)
-                        with gr.Row():
-                            seed = gr.Number(label="Seed", value=-1, scale=4, precision=0, interactive=True)
-                            gr.Button('\U0001f3b2\ufe0f', scale=1).click(fn=lambda: -1, outputs=[seed], queue=False)
-                            reuse_seed = gr.Button('\u267b\ufe0f', scale=1)
-
-                    with gr.Tab("Audio"):
-                        with gr.Row():
-                            with gr.Column():
-                                input_type = gr.Radio(["file", "mic"], value="file", label="Input Type (optional)", interactive=True)
-                                mode = gr.Radio(["melody", "sample"], label="Input Audio Mode (optional)", value="sample", interactive=True)
-                                with gr.Row():
-                                    trim_start = gr.Number(label="Trim Start", value=0, interactive=True)
-                                    trim_end = gr.Number(label="Trim End", value=0, interactive=True)
-                            audio = gr.Audio(source="upload", type="numpy", label="Input Audio (optional)", interactive=True)
-
-                    with gr.Tab("Customization"):
-                        with gr.Row():
-                            with gr.Column():
-                                background = gr.ColorPicker(value="#0f0f0f", label="background color", interactive=True, scale=0)
-                                bar1 = gr.ColorPicker(value="#84cc16", label="bar color start", interactive=True, scale=0)
-                                bar2 = gr.ColorPicker(value="#10b981", label="bar color end", interactive=True, scale=0)
-                            with gr.Column():
-                                image = gr.Image(label="Background Image", type="filepath", interactive=True, scale=4)
-                                with gr.Row():
-                                    height = gr.Number(label="Height", value=512, interactive=True)
-                                    width = gr.Number(label="Width", value=768, interactive=True)
-
-                    with gr.Tab("Settings"):
-                        with gr.Row():
-                            channel = gr.Radio(["mono", "stereo", "stereo effect"], label="Output Audio Channels", value="stereo", interactive=True, scale=1)
-                            sr_select = gr.Dropdown(["11025", "16000", "22050", "24000", "32000", "44100", "48000"], label="Output Audio Sample Rate", value="48000", interactive=True)
-                        with gr.Row():
-                            model = gr.Radio(["melody", "small", "medium", "large", "custom"], label="Model", value="large", interactive=True, scale=1)
-                            with gr.Column():
-                                dropdown = gr.Dropdown(choices=get_available_folders(), value=("No models found" if len(get_available_folders()) < 1 else get_available_folders()[0]), label='Custom Model (models folder)', elem_classes='slim-dropdown', interactive=True)
-                                create_refresh_button(dropdown, lambda: None, lambda: {'choices': get_available_folders()}, 'refresh-button')
-                        with gr.Row():
-                            decoder = gr.Radio(["Default", "MultiBand_Diffusion"], label="Decoder", value="Default", interactive=True)
-                        with gr.Row():
-                            topk = gr.Number(label="Top-k", value=250, interactive=True)
-                            topp = gr.Number(label="Top-p", value=0, interactive=True)
-                            temperature = gr.Number(label="Temperature", value=1.0, interactive=True)
-                            cfg_coef = gr.Number(label="Classifier Free Guidance", value=3.0, interactive=True)
+                                struc_prompts = gr.Checkbox(label="Enable", value=False, interactive=True, container=False)
+                                bpm = gr.Number(label="BPM", value=120, interactive=True, scale=1, precision=0)
+                                key = gr.Dropdown(["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "Bb", "B"], label="Key", value="C", interactive=True)
+                                scale = gr.Dropdown(["Major", "Minor"], label="Scale", value="Major", interactive=True)
+                            with gr.Row():
+                                global_prompt = gr.Text(label="Global Prompt", interactive=True, scale=3)
                     with gr.Row():
-                        submit = gr.Button("Generate", variant="primary")
-                        # Adapted from https://github.com/rkfg/audiocraft/blob/long/app.py, MIT license.
-                        _ = gr.Button("Interrupt").click(fn=interrupt, queue=False)
-                with gr.Column() as c:
-                    with gr.Tab("Output"):
-                        output = gr.Video(label="Generated Music", scale=0)
+                        s = gr.Slider(1, max_textboxes, value=1, step=1, label="Prompts:", interactive=True, scale=2)
+                        #s_mode = gr.Radio(["segmentation", "batch"], value="segmentation", interactive=True, scale=1, label="Generation Mode")
+                    with gr.Column():
+                        textboxes = []
+                        prompts = []
+                        repeats = []
+                        calcs = []
                         with gr.Row():
-                            audio_only = gr.Audio(type="numpy", label="Audio Only", interactive=False)
-                            backup_only = gr.Audio(type="numpy", label="Backup Audio", interactive=False, visible=False)
-                            send_audio = gr.Button("Send to Input Audio")
-                        seed_used = gr.Number(label='Seed used', value=-1, interactive=False)
-                        download = gr.File(label="Generated Files", interactive=False)
-                    with gr.Tab("Wiki"):
-                        gr.Markdown(
-                            """
-                            - **[Generate (button)]:**  
-                            Generates the music with the given settings and prompts.
+                            text0 = gr.Text(label="Input Text", interactive=True, scale=4)
+                            prompts.append(text0)
+                            drag0 = gr.Number(label="Repeat", value=1, interactive=True, scale=1)
+                            repeats.append(drag0)
+                            calc0 = gr.Text(interactive=False, value="00:00 - 00:00", scale=1, label="Time")
+                            calcs.append(calc0)
+                        for i in range(max_textboxes):
+                            with gr.Row(visible=False) as t:
+                                text = gr.Text(label="Input Text", interactive=True, scale=3)
+                                repeat = gr.Number(label="Repeat", minimum=1, value=1, interactive=True, scale=1)
+                                calc = gr.Text(interactive=False, value="00:00 - 00:00", scale=1, label="Time")
+                            textboxes.append(t)
+                            prompts.append(text)
+                            repeats.append(repeat)
+                            calcs.append(calc)
+                        to_calc = gr.Button("Calculate Timings", variant="secondary")
+                    with gr.Row():
+                        duration = gr.Slider(minimum=1, maximum=300, value=10, step=1, label="Duration", interactive=True)
+                    with gr.Row():
+                        overlap = gr.Slider(minimum=1, maximum=29, value=12, step=1, label="Overlap", interactive=True)
+                    with gr.Row():
+                        seed = gr.Number(label="Seed", value=-1, scale=4, precision=0, interactive=True)
+                        gr.Button('\U0001f3b2\ufe0f', scale=1).click(fn=lambda: -1, outputs=[seed], queue=False)
+                        reuse_seed = gr.Button('\u267b\ufe0f', scale=1)
 
-                            - **[Interrupt (button)]:**  
-                            Stops the music generation as soon as it can, providing an incomplete output.
-
-                            ---
-
-                            ### Generation Tab:
-
-                            #### Structure Prompts:
-
-                            This feature helps reduce repetetive prompts by allowing you to set global prompts  
-                            that will be used for all prompt segments.
-
-                            - **[Structure Prompts (checkbox)]:**  
-                            Enable/Disable the structure prompts feature.
-
-                            - **[BPM (number)]:**  
-                            Beats per minute of the generated music.
-
-                            - **[Key (dropdown)]:**  
-                            The key of the generated music.
-
-                            - **[Scale (dropdown)]:**  
-                            The scale of the generated music.
-
-                            - **[Global Prompt (text)]:**  
-                            Here write the prompt that you wish to be used for all prompt segments.
-
-                            #### Multi-Prompt: 
-                            
-                            This feature allows you to control the music, adding variation to different time segments.  
-                            You have up to 10 prompt segments. the first prompt will always be 30s long  
-                            the other prompts will be [30s - overlap].  
-                            for example if the overlap is 10s, each prompt segment will be 20s.
-
-                            - **[Prompt Segments (number)]:**  
-                            Amount of unique prompt to generate throughout the music generation.
-
-                            - **[Prompt/Input Text (prompt)]:**  
-                            Here describe the music you wish the model to generate.
-
-                            - **[Repeat (number)]:**  
-                            Write how many times this prompt will repeat (instead of wasting another prompt segment on the same prompt).
-
-                            - **[Time (text)]:**  
-                            The time of the prompt segment.
-
-                            - **[Calculate Timings (button)]:**  
-                            Calculates the timings of the prompt segments.
-
-                            - **[Duration (number)]:**  
-                            How long you want the generated music to be (in seconds).
-
-                            - **[Overlap (number)]:**  
-                            How much each new segment will reference the previous segment (in seconds).  
-                            For example, if you choose 20s: Each new segment after the first one will reference the previous segment 20s  
-                            and will generate only 10s of new music. The model can only process 30s of music.
-
-                            - **[Seed (number)]:**  
-                            Your generated music id. If you wish to generate the exact same music,  
-                            place the exact seed with the exact prompts  
-                            (This way you can also extend specific song that was generated short).
-
-                            - **[Random Seed (button)]:**  
-                            Gives "-1" as a seed, which counts as a random seed.
-
-                            - **[Copy Previous Seed (button)]:**  
-                            Copies the seed from the output seed (if you don't feel like doing it manualy).
-
-                            ---
-
-                            ### Audio Tab:
-
-                            - **[Input Type (selection)]:**  
-                            `File` mode allows you to upload an audio file to use as input  
-                            `Mic` mode allows you to use your microphone as input
-
-                            - **[Input Audio Mode (selection)]:**  
-                            `Melody` mode only works with the melody model: it conditions the music generation to reference the melody  
-                            `Sample` mode works with any model: it gives a music sample to the model to generate its continuation.
-
-                            - **[Trim Start and Trim End (numbers)]:**  
-                            `Trim Start` set how much you'd like to trim the input audio from the start  
-                            `Trim End` same as the above but from the end
-
-                            - **[Input Audio (audio file)]:**  
-                            Input here the audio you wish to use with "melody" or "sample" mode.
-
-                            ---
-
-                            ### Customization Tab:
-
-                            - **[Background Color (color)]:**  
-                            Works only if you don't upload image. Color of the background of the waveform.
-
-                            - **[Bar Color Start (color)]:**  
-                            First color of the waveform bars.
-
-                            - **[Bar Color End (color)]:**  
-                            Second color of the waveform bars.
-
-                            - **[Background Image (image)]:**  
-                            Background image that you wish to be attached to the generated video along with the waveform.
-
-                            - **[Height and Width (numbers)]:**  
-                            Output video resolution, only works with image.  
-                            (minimum height and width is 256).
-                            
-                            ---
-
-                            ### Settings Tab:
-
-                            - **[Output Audio Channels (selection)]:**  
-                            With this you can select the amount of channels that you wish for your output audio.  
-                            `mono` is a straightforward single channel audio  
-                            `stereo` is a dual channel audio but it will sound more or less like mono  
-                            `stereo effect` this one is also dual channel but uses tricks to simulate a stereo audio.
-
-                            - **[Output Audio Sample Rate (dropdown)]:**  
-                            The output audio sample rate, the model default is 32000.
-
-                            - **[Model (selection)]:**  
-                            Here you can choose which model you wish to use:  
-                            `melody` model is based on the medium model with a unique feature that lets you use melody conditioning  
-                            `small` model is trained on 300M parameters  
-                            `medium` model is trained on 1.5B parameters  
-                            `large` model is trained on 3.3B parameters  
-                            `custom` model runs the custom model that you provided.
-
-                            - **[Custom Model (selection)]:**  
-                            This dropdown will show you models that are placed in the `models` folder  
-                            you must select `custom` in the model options in order to use it.
-
-                            - **[Refresh (button)]:**  
-                            Refreshes the dropdown list for custom model.
-
-                            - **[Decoder (selection)]:**  
-                            Choose here the decoder that you wish to use:  
-                            `Default` is the default decoder  
-                            `MultiBand_Diffusion` is a decoder that uses diffusion to generate the audio.
-
-                            - **[Top-k (number)]:**  
-                            is a parameter used in text generation models, including music generation models. It determines the number of most likely next tokens to consider at each step of the generation process. The model ranks all possible tokens based on their predicted probabilities, and then selects the top-k tokens from the ranked list. The model then samples from this reduced set of tokens to determine the next token in the generated sequence. A smaller value of k results in a more focused and deterministic output, while a larger value of k allows for more diversity in the generated music.
-
-                            - **[Top-p (number)]:**  
-                            also known as nucleus sampling or probabilistic sampling, is another method used for token selection during text generation. Instead of specifying a fixed number like top-k, top-p considers the cumulative probability distribution of the ranked tokens. It selects the smallest possible set of tokens whose cumulative probability exceeds a certain threshold (usually denoted as p). The model then samples from this set to choose the next token. This approach ensures that the generated output maintains a balance between diversity and coherence, as it allows for a varying number of tokens to be considered based on their probabilities.
-                            
-                            - **[Temperature (number)]:**  
-                            is a parameter that controls the randomness of the generated output. It is applied during the sampling process, where a higher temperature value results in more random and diverse outputs, while a lower temperature value leads to more deterministic and focused outputs. In the context of music generation, a higher temperature can introduce more variability and creativity into the generated music, but it may also lead to less coherent or structured compositions. On the other hand, a lower temperature can produce more repetitive and predictable music.
-
-                            - **[Classifier Free Guidance (number)]:**  
-                            refers to a technique used in some music generation models where a separate classifier network is trained to provide guidance or control over the generated music. This classifier is trained on labeled data to recognize specific musical characteristics or styles. During the generation process, the output of the generator model is evaluated by the classifier, and the generator is encouraged to produce music that aligns with the desired characteristics or style. This approach allows for more fine-grained control over the generated music, enabling users to specify certain attributes they want the model to capture.
-                            """
-                        )
-        with gr.Tab("AudioGen"):
-            gr.Markdown(
-                """
-                ### AudioGen
-                """
-            )
-            with gr.Row():
-                with gr.Column():
-                    with gr.Tab("Generation"):
-                        with gr.Accordion("Structure Prompts", open=False):
-                            with gr.Row():
-                                struc_prompts_a = gr.Checkbox(label="Enable", value=False, interactive=True, container=False)
-                                global_prompt_a = gr.Text(label="Global Prompt", interactive=True, scale=3)
-                        with gr.Row():
-                            s_a = gr.Slider(1, max_textboxes, value=1, step=1, label="Prompts:", interactive=True, scale=2)
+                with gr.Tab("Audio"):
+                    with gr.Row():
                         with gr.Column():
-                            textboxes_a = []
-                            prompts_a = []
-                            repeats_a = []
-                            calcs_a = []
+                            input_type = gr.Radio(["file", "mic"], value="file", label="Input Type (optional)", interactive=True)
+                            mode = gr.Radio(["melody", "sample"], label="Input Audio Mode (optional)", value="sample", interactive=True)
                             with gr.Row():
-                                text0_a = gr.Text(label="Input Text", interactive=True, scale=4)
-                                prompts_a.append(text0_a)
-                                drag0_a = gr.Number(label="Repeat", value=1, interactive=True, scale=1)
-                                repeats_a.append(drag0_a)
-                                calc0_a = gr.Text(interactive=False, value="00:00 - 00:00", scale=1, label="Time")
-                                calcs_a.append(calc0_a)
-                            for i in range(max_textboxes):
-                                with gr.Row(visible=False) as t_a:
-                                    text_a = gr.Text(label="Input Text", interactive=True, scale=3)
-                                    repeat_a = gr.Number(label="Repeat", minimum=1, value=1, interactive=True, scale=1)
-                                    calc_a = gr.Text(interactive=False, value="00:00 - 00:00", scale=1, label="Time")
-                                textboxes_a.append(t_a)
-                                prompts_a.append(text_a)
-                                repeats_a.append(repeat_a)
-                                calcs_a.append(calc_a)
-                            to_calc_a = gr.Button("Calculate Timings", variant="secondary")
-                        with gr.Row():
-                            duration_a = gr.Slider(minimum=1, maximum=300, value=10, step=1, label="Duration", interactive=True)
-                        with gr.Row():
-                            overlap_a = gr.Slider(minimum=1, maximum=9, value=2, step=1, label="Overlap", interactive=True)
-                        with gr.Row():
-                            seed_a = gr.Number(label="Seed", value=-1, scale=4, precision=0, interactive=True)
-                            gr.Button('\U0001f3b2\ufe0f', scale=1).click(fn=lambda: -1, outputs=[seed_a], queue=False)
-                            reuse_seed_a = gr.Button('\u267b\ufe0f', scale=1)
+                                trim_start = gr.Number(label="Trim Start", value=0, interactive=True)
+                                trim_end = gr.Number(label="Trim End", value=0, interactive=True)
+                        audio = gr.Audio(source="upload", type="numpy", label="Input Audio (optional)", interactive=True)
 
-                    with gr.Tab("Audio"):
-                        with gr.Row():
-                            with gr.Column():
-                                input_type_a = gr.Radio(["file", "mic"], value="file", label="Input Type (optional)", interactive=True)
-                                mode_a = gr.Radio(["sample"], label="Input Audio Mode (optional)", value="sample", interactive=False, visible=False)
-                                with gr.Row():
-                                    trim_start_a = gr.Number(label="Trim Start", value=0, interactive=True)
-                                    trim_end_a = gr.Number(label="Trim End", value=0, interactive=True)
-                            audio_a = gr.Audio(source="upload", type="numpy", label="Input Audio (optional)", interactive=True)
-
-                    with gr.Tab("Customization"):
-                        with gr.Row():
-                            with gr.Column():
-                                background_a = gr.ColorPicker(value="#0f0f0f", label="background color", interactive=True, scale=0)
-                                bar1_a = gr.ColorPicker(value="#84cc16", label="bar color start", interactive=True, scale=0)
-                                bar2_a = gr.ColorPicker(value="#10b981", label="bar color end", interactive=True, scale=0)
-                            with gr.Column():
-                                image_a = gr.Image(label="Background Image", type="filepath", interactive=True, scale=4)
-                                with gr.Row():
-                                    height_a = gr.Number(label="Height", value=512, interactive=True)
-                                    width_a = gr.Number(label="Width", value=768, interactive=True)
-
-                    with gr.Tab("Settings"):
-                        with gr.Row():
-                            channel_a = gr.Radio(["mono", "stereo", "stereo effect"], label="Output Audio Channels", value="stereo", interactive=True, scale=1)
-                            sr_select_a = gr.Dropdown(["11025", "16000", "22050", "24000", "32000", "44100", "48000"], label="Output Audio Sample Rate", value="48000", interactive=True)
-                        with gr.Row():
-                            model_a = gr.Radio(["medium"], label="Model", value="medium", interactive=False, visible=False)
-                            decoder_a = gr.Radio(["Default"], label="Decoder", value="Default", interactive=False, visible=False)
-                        with gr.Row():
-                            topk_a = gr.Number(label="Top-k", value=250, interactive=True)
-                            topp_a = gr.Number(label="Top-p", value=0, interactive=True)
-                            temperature_a = gr.Number(label="Temperature", value=1.0, interactive=True)
-                            cfg_coef_a = gr.Number(label="Classifier Free Guidance", value=3.0, interactive=True)
+                with gr.Tab("Customization"):
                     with gr.Row():
-                        submit_a = gr.Button("Generate", variant="primary")
-                        _ = gr.Button("Interrupt").click(fn=interrupt, queue=False)
-                with gr.Column():
-                    with gr.Tab("Output"):
-                        output_a = gr.Video(label="Generated Audio", scale=0)
-                        with gr.Row():
-                            audio_only_a = gr.Audio(type="numpy", label="Audio Only", interactive=False)
-                            backup_only_a = gr.Audio(type="numpy", label="Backup Audio", interactive=False, visible=False)
-                            send_audio_a = gr.Button("Send to Input Audio")
-                        seed_used_a = gr.Number(label='Seed used', value=-1, interactive=False)
-                        download_a = gr.File(label="Generated Files", interactive=False)
-                    with gr.Tab("Wiki"):
-                        gr.Markdown(
-                            """
-                            - **[Generate (button)]:**  
-                            Generates the audio with the given settings and prompts.
+                        with gr.Column():
+                            background = gr.ColorPicker(value="#0f0f0f", label="background color", interactive=True, scale=0)
+                            bar1 = gr.ColorPicker(value="#84cc16", label="bar color start", interactive=True, scale=0)
+                            bar2 = gr.ColorPicker(value="#10b981", label="bar color end", interactive=True, scale=0)
+                        with gr.Column():
+                            image = gr.Image(label="Background Image", type="filepath", interactive=True, scale=4)
+                            with gr.Row():
+                                height = gr.Number(label="Height", value=512, interactive=True)
+                                width = gr.Number(label="Width", value=768, interactive=True)
 
-                            - **[Interrupt (button)]:**  
-                            Stops the audio generation as soon as it can, providing an incomplete output.
-
-                            ---
-
-                            ### Generation Tab:
-
-                            #### Structure Prompts:
-
-                            This feature helps reduce repetetive prompts by allowing you to set global prompts  
-                            that will be used for all prompt segments.
-
-                            - **[Structure Prompts (checkbox)]:**  
-                            Enable/Disable the structure prompts feature.
-
-                            - **[Global Prompt (text)]:**  
-                            Here write the prompt that you wish to be used for all prompt segments.
-
-                            #### Multi-Prompt: 
-                            
-                            This feature allows you to control the audio, adding variation to different time segments.  
-                            You have up to 10 prompt segments. the first prompt will always be 10s long  
-                            the other prompts will be [10s - overlap].  
-                            for example if the overlap is 2s, each prompt segment will be 8s.
-
-                            - **[Prompt Segments (number)]:**  
-                            Amount of unique prompt to generate throughout the audio generation.
-
-                            - **[Prompt/Input Text (prompt)]:**  
-                            Here describe the audio you wish the model to generate.
-
-                            - **[Repeat (number)]:**  
-                            Write how many times this prompt will repeat (instead of wasting another prompt segment on the same prompt).
-
-                            - **[Time (text)]:**  
-                            The time of the prompt segment.
-
-                            - **[Calculate Timings (button)]:**  
-                            Calculates the timings of the prompt segments.
-
-                            - **[Duration (number)]:**  
-                            How long you want the generated audio to be (in seconds).
-
-                            - **[Overlap (number)]:**  
-                            How much each new segment will reference the previous segment (in seconds).  
-                            For example, if you choose 2s: Each new segment after the first one will reference the previous segment 2s  
-                            and will generate only 8s of new audio. The model can only process 10s of music.
-
-                            - **[Seed (number)]:**  
-                            Your generated audio id. If you wish to generate the exact same audio,  
-                            place the exact seed with the exact prompts  
-                            (This way you can also extend specific song that was generated short).
-
-                            - **[Random Seed (button)]:**  
-                            Gives "-1" as a seed, which counts as a random seed.
-
-                            - **[Copy Previous Seed (button)]:**  
-                            Copies the seed from the output seed (if you don't feel like doing it manualy).
-
-                            ---
-
-                            ### Audio Tab:
-
-                            - **[Input Type (selection)]:**  
-                            `File` mode allows you to upload an audio file to use as input  
-                            `Mic` mode allows you to use your microphone as input
-
-                            - **[Trim Start and Trim End (numbers)]:**  
-                            `Trim Start` set how much you'd like to trim the input audio from the start  
-                            `Trim End` same as the above but from the end
-
-                            - **[Input Audio (audio file)]:**  
-                            Input here the audio you wish to use.
-
-                            ---
-
-                            ### Customization Tab:
-
-                            - **[Background Color (color)]:**  
-                            Works only if you don't upload image. Color of the background of the waveform.
-
-                            - **[Bar Color Start (color)]:**  
-                            First color of the waveform bars.
-
-                            - **[Bar Color End (color)]:**  
-                            Second color of the waveform bars.
-
-                            - **[Background Image (image)]:**  
-                            Background image that you wish to be attached to the generated video along with the waveform.
-
-                            - **[Height and Width (numbers)]:**  
-                            Output video resolution, only works with image.  
-                            (minimum height and width is 256).
-                            
-                            ---
-
-                            ### Settings Tab:
-
-                            - **[Output Audio Channels (selection)]:**  
-                            With this you can select the amount of channels that you wish for your output audio.  
-                            `mono` is a straightforward single channel audio  
-                            `stereo` is a dual channel audio but it will sound more or less like mono  
-                            `stereo effect` this one is also dual channel but uses tricks to simulate a stereo audio.
-
-                            - **[Output Audio Sample Rate (dropdown)]:**  
-                            The output audio sample rate, the model default is 32000.
-
-                            - **[Top-k (number)]:**  
-                            is a parameter used in text generation models, including music generation models. It determines the number of most likely next tokens to consider at each step of the generation process. The model ranks all possible tokens based on their predicted probabilities, and then selects the top-k tokens from the ranked list. The model then samples from this reduced set of tokens to determine the next token in the generated sequence. A smaller value of k results in a more focused and deterministic output, while a larger value of k allows for more diversity in the generated music.
-
-                            - **[Top-p (number)]:**  
-                            also known as nucleus sampling or probabilistic sampling, is another method used for token selection during text generation. Instead of specifying a fixed number like top-k, top-p considers the cumulative probability distribution of the ranked tokens. It selects the smallest possible set of tokens whose cumulative probability exceeds a certain threshold (usually denoted as p). The model then samples from this set to choose the next token. This approach ensures that the generated output maintains a balance between diversity and coherence, as it allows for a varying number of tokens to be considered based on their probabilities.
-                            
-                            - **[Temperature (number)]:**  
-                            is a parameter that controls the randomness of the generated output. It is applied during the sampling process, where a higher temperature value results in more random and diverse outputs, while a lower temperature value leads to more deterministic and focused outputs. In the context of music generation, a higher temperature can introduce more variability and creativity into the generated music, but it may also lead to less coherent or structured compositions. On the other hand, a lower temperature can produce more repetitive and predictable music.
-
-                            - **[Classifier Free Guidance (number)]:**  
-                            refers to a technique used in some music generation models where a separate classifier network is trained to provide guidance or control over the generated music. This classifier is trained on labeled data to recognize specific musical characteristics or styles. During the generation process, the output of the generator model is evaluated by the classifier, and the generator is encouraged to produce music that aligns with the desired characteristics or style. This approach allows for more fine-grained control over the generated music, enabling users to specify certain attributes they want the model to capture.
-                            """
-                        )
-        with gr.Tab("Audio Info"):
-            gr.Markdown(
-                """
-                ### Audio Info
-                """
-            )
-            with gr.Row():
-                with gr.Column():
-                    in_audio = gr.File(type="file", label="Input Any Audio", interactive=True)
+                with gr.Tab("Settings"):
                     with gr.Row():
-                        send_gen = gr.Button("Send to MusicGen", variant="primary")
-                        send_gen_a = gr.Button("Send to AudioGen", variant="primary")
-                with gr.Column():
-                    info = gr.Textbox(label="Audio Info", lines=10, interactive=False)
-        with gr.Tab("Changelog"):
-            gr.Markdown(
-                            """
-                            ## Changelog:
+                        channel = gr.Radio(["mono", "stereo", "stereo effect"], label="Output Audio Channels", value="stereo", interactive=True, scale=1)
+                        sr_select = gr.Dropdown(["11025", "16000", "22050", "24000", "32000", "44100", "48000"], label="Output Audio Sample Rate", value="48000", interactive=True)
+                    with gr.Row():
+                        model = gr.Radio(["melody", "small", "medium", "large", "custom"], label="Model", value="large", interactive=True, scale=1)
+                        with gr.Column():
+                            dropdown = gr.Dropdown(choices=get_available_folders(), value=("No models found" if len(get_available_folders()) < 1 else get_available_folders()[0]), label='Custom Model (models folder)', elem_classes='slim-dropdown', interactive=True)
+                            create_refresh_button(dropdown, lambda: None, lambda: {'choices': get_available_folders()}, 'refresh-button')
+                    with gr.Row():
+                        decoder = gr.Radio(["Default", "MultiBand_Diffusion"], label="Decoder", value="Default", interactive=True)
+                    with gr.Row():
+                        topk = gr.Number(label="Top-k", value=250, interactive=True)
+                        topp = gr.Number(label="Top-p", value=0, interactive=True)
+                        temperature = gr.Number(label="Temperature", value=1.0, interactive=True)
+                        cfg_coef = gr.Number(label="Classifier Free Guidance", value=3.0, interactive=True)
+                with gr.Row():
+                    submit = gr.Button("Generate", variant="primary")
+                    # Adapted from https://github.com/rkfg/audiocraft/blob/long/app.py, MIT license.
+                    _ = gr.Button("Interrupt").click(fn=interrupt, queue=False)
+            with gr.Column() as c:
+                with gr.Tab("Output"):
+                    output = gr.Video(label="Generated Music", scale=0)
+                    with gr.Row():
+                        audio_only = gr.Audio(type="numpy", label="Audio Only", interactive=False)
+                        backup_only = gr.Audio(type="numpy", label="Backup Audio", interactive=False, visible=False)
+                        send_audio = gr.Button("Send to Input Audio")
+                    seed_used = gr.Number(label='Seed used', value=-1, interactive=False)
+                    download = gr.File(label="Generated Files", interactive=False)
+                with gr.Tab("Wiki"):
+                    gr.Markdown(
+                        """
+                        - **[Generate (button)]:**  
+                        Generates the music with the given settings and prompts.
+
+                        - **[Interrupt (button)]:**  
+                        Stops the music generation as soon as it can, providing an incomplete output.
+
+                        ---
+
+                        ### Generation Tab:
+
+                        #### Structure Prompts:
+
+                        This feature helps reduce repetetive prompts by allowing you to set global prompts  
+                        that will be used for all prompt segments.
 
-                            ### v2.0.1
+                        - **[Structure Prompts (checkbox)]:**  
+                        Enable/Disable the structure prompts feature.
+
+                        - **[BPM (number)]:**  
+                        Beats per minute of the generated music.
+
+                        - **[Key (dropdown)]:**  
+                        The key of the generated music.
+
+                        - **[Scale (dropdown)]:**  
+                        The scale of the generated music.
+
+                        - **[Global Prompt (text)]:**  
+                        Here write the prompt that you wish to be used for all prompt segments.
+
+                        #### Multi-Prompt: 
+                        
+                        This feature allows you to control the music, adding variation to different time segments.  
+                        You have up to 10 prompt segments. the first prompt will always be 30s long  
+                        the other prompts will be [30s - overlap].  
+                        for example if the overlap is 10s, each prompt segment will be 20s.
+
+                        - **[Prompt Segments (number)]:**  
+                        Amount of unique prompt to generate throughout the music generation.
+
+                        - **[Prompt/Input Text (prompt)]:**  
+                        Here describe the music you wish the model to generate.
+
+                        - **[Repeat (number)]:**  
+                        Write how many times this prompt will repeat (instead of wasting another prompt segment on the same prompt).
+
+                        - **[Time (text)]:**  
+                        The time of the prompt segment.
+
+                        - **[Calculate Timings (button)]:**  
+                        Calculates the timings of the prompt segments.
+
+                        - **[Duration (number)]:**  
+                        How long you want the generated music to be (in seconds).
+
+                        - **[Overlap (number)]:**  
+                        How much each new segment will reference the previous segment (in seconds).  
+                        For example, if you choose 20s: Each new segment after the first one will reference the previous segment 20s  
+                        and will generate only 10s of new music. The model can only process 30s of music.
+
+                        - **[Seed (number)]:**  
+                        Your generated music id. If you wish to generate the exact same music,  
+                        place the exact seed with the exact prompts  
+                        (This way you can also extend specific song that was generated short).
+
+                        - **[Random Seed (button)]:**  
+                        Gives "-1" as a seed, which counts as a random seed.
+
+                        - **[Copy Previous Seed (button)]:**  
+                        Copies the seed from the output seed (if you don't feel like doing it manualy).
+
+                        ---
+
+                        ### Audio Tab:
+
+                        - **[Input Type (selection)]:**  
+                        `File` mode allows you to upload an audio file to use as input  
+                        `Mic` mode allows you to use your microphone as input
+
+                        - **[Input Audio Mode (selection)]:**  
+                        `Melody` mode only works with the melody model: it conditions the music generation to reference the melody  
+                        `Sample` mode works with any model: it gives a music sample to the model to generate its continuation.
+
+                        - **[Trim Start and Trim End (numbers)]:**  
+                        `Trim Start` set how much you'd like to trim the input audio from the start  
+                        `Trim End` same as the above but from the end
+
+                        - **[Input Audio (audio file)]:**  
+                        Input here the audio you wish to use with "melody" or "sample" mode.
+
+                        ---
+
+                        ### Customization Tab:
+
+                        - **[Background Color (color)]:**  
+                        Works only if you don't upload image. Color of the background of the waveform.
+
+                        - **[Bar Color Start (color)]:**  
+                        First color of the waveform bars.
+
+                        - **[Bar Color End (color)]:**  
+                        Second color of the waveform bars.
+
+                        - **[Background Image (image)]:**  
+                        Background image that you wish to be attached to the generated video along with the waveform.
+
+                        - **[Height and Width (numbers)]:**  
+                        Output video resolution, only works with image.  
+                        (minimum height and width is 256).
+                        
+                        ---
+
+                        ### Settings Tab:
+
+                        - **[Output Audio Channels (selection)]:**  
+                        With this you can select the amount of channels that you wish for your output audio.  
+                        `mono` is a straightforward single channel audio  
+                        `stereo` is a dual channel audio but it will sound more or less like mono  
+                        `stereo effect` this one is also dual channel but uses tricks to simulate a stereo audio.
+
+                        - **[Output Audio Sample Rate (dropdown)]:**  
+                        The output audio sample rate, the model default is 32000.
+
+                        - **[Model (selection)]:**  
+                        Here you can choose which model you wish to use:  
+                        `melody` model is based on the medium model with a unique feature that lets you use melody conditioning  
+                        `small` model is trained on 300M parameters  
+                        `medium` model is trained on 1.5B parameters  
+                        `large` model is trained on 3.3B parameters  
+                        `custom` model runs the custom model that you provided.
+
+                        - **[Custom Model (selection)]:**  
+                        This dropdown will show you models that are placed in the `models` folder  
+                        you must select `custom` in the model options in order to use it.
+
+                        - **[Refresh (button)]:**  
+                        Refreshes the dropdown list for custom model.
+
+                        - **[Decoder (selection)]:**  
+                        Choose here the decoder that you wish to use:  
+                        `Default` is the default decoder  
+                        `MultiBand_Diffusion` is a decoder that uses diffusion to generate the audio.
+
+                        - **[Top-k (number)]:**  
+                        is a parameter used in text generation models, including music generation models. It determines the number of most likely next tokens to consider at each step of the generation process. The model ranks all possible tokens based on their predicted probabilities, and then selects the top-k tokens from the ranked list. The model then samples from this reduced set of tokens to determine the next token in the generated sequence. A smaller value of k results in a more focused and deterministic output, while a larger value of k allows for more diversity in the generated music.
+
+                        - **[Top-p (number)]:**  
+                        also known as nucleus sampling or probabilistic sampling, is another method used for token selection during text generation. Instead of specifying a fixed number like top-k, top-p considers the cumulative probability distribution of the ranked tokens. It selects the smallest possible set of tokens whose cumulative probability exceeds a certain threshold (usually denoted as p). The model then samples from this set to choose the next token. This approach ensures that the generated output maintains a balance between diversity and coherence, as it allows for a varying number of tokens to be considered based on their probabilities.
+                        
+                        - **[Temperature (number)]:**  
+                        is a parameter that controls the randomness of the generated output. It is applied during the sampling process, where a higher temperature value results in more random and diverse outputs, while a lower temperature value leads to more deterministic and focused outputs. In the context of music generation, a higher temperature can introduce more variability and creativity into the generated music, but it may also lead to less coherent or structured compositions. On the other hand, a lower temperature can produce more repetitive and predictable music.
+
+                        - **[Classifier Free Guidance (number)]:**  
+                        refers to a technique used in some music generation models where a separate classifier network is trained to provide guidance or control over the generated music. This classifier is trained on labeled data to recognize specific musical characteristics or styles. During the generation process, the output of the generator model is evaluated by the classifier, and the generator is encouraged to produce music that aligns with the desired characteristics or style. This approach allows for more fine-grained control over the generated music, enabling users to specify certain attributes they want the model to capture.
+                        """
+                    )
+    with gr.Tab("AudioGen"):
+        gr.Markdown(
+            """
+            ### AudioGen
+            """
+        )
+        with gr.Row():
+            with gr.Column():
+                with gr.Tab("Generation"):
+                    with gr.Accordion("Structure Prompts", open=False):
+                        with gr.Row():
+                            struc_prompts_a = gr.Checkbox(label="Enable", value=False, interactive=True, container=False)
+                            global_prompt_a = gr.Text(label="Global Prompt", interactive=True, scale=3)
+                    with gr.Row():
+                        s_a = gr.Slider(1, max_textboxes, value=1, step=1, label="Prompts:", interactive=True, scale=2)
+                    with gr.Column():
+                        textboxes_a = []
+                        prompts_a = []
+                        repeats_a = []
+                        calcs_a = []
+                        with gr.Row():
+                            text0_a = gr.Text(label="Input Text", interactive=True, scale=4)
+                            prompts_a.append(text0_a)
+                            drag0_a = gr.Number(label="Repeat", value=1, interactive=True, scale=1)
+                            repeats_a.append(drag0_a)
+                            calc0_a = gr.Text(interactive=False, value="00:00 - 00:00", scale=1, label="Time")
+                            calcs_a.append(calc0_a)
+                        for i in range(max_textboxes):
+                            with gr.Row(visible=False) as t_a:
+                                text_a = gr.Text(label="Input Text", interactive=True, scale=3)
+                                repeat_a = gr.Number(label="Repeat", minimum=1, value=1, interactive=True, scale=1)
+                                calc_a = gr.Text(interactive=False, value="00:00 - 00:00", scale=1, label="Time")
+                            textboxes_a.append(t_a)
+                            prompts_a.append(text_a)
+                            repeats_a.append(repeat_a)
+                            calcs_a.append(calc_a)
+                        to_calc_a = gr.Button("Calculate Timings", variant="secondary")
+                    with gr.Row():
+                        duration_a = gr.Slider(minimum=1, maximum=300, value=10, step=1, label="Duration", interactive=True)
+                    with gr.Row():
+                        overlap_a = gr.Slider(minimum=1, maximum=9, value=2, step=1, label="Overlap", interactive=True)
+                    with gr.Row():
+                        seed_a = gr.Number(label="Seed", value=-1, scale=4, precision=0, interactive=True)
+                        gr.Button('\U0001f3b2\ufe0f', scale=1).click(fn=lambda: -1, outputs=[seed_a], queue=False)
+                        reuse_seed_a = gr.Button('\u267b\ufe0f', scale=1)
+
+                with gr.Tab("Audio"):
+                    with gr.Row():
+                        with gr.Column():
+                            input_type_a = gr.Radio(["file", "mic"], value="file", label="Input Type (optional)", interactive=True)
+                            mode_a = gr.Radio(["sample"], label="Input Audio Mode (optional)", value="sample", interactive=False, visible=False)
+                            with gr.Row():
+                                trim_start_a = gr.Number(label="Trim Start", value=0, interactive=True)
+                                trim_end_a = gr.Number(label="Trim End", value=0, interactive=True)
+                        audio_a = gr.Audio(source="upload", type="numpy", label="Input Audio (optional)", interactive=True)
+
+                with gr.Tab("Customization"):
+                    with gr.Row():
+                        with gr.Column():
+                            background_a = gr.ColorPicker(value="#0f0f0f", label="background color", interactive=True, scale=0)
+                            bar1_a = gr.ColorPicker(value="#84cc16", label="bar color start", interactive=True, scale=0)
+                            bar2_a = gr.ColorPicker(value="#10b981", label="bar color end", interactive=True, scale=0)
+                        with gr.Column():
+                            image_a = gr.Image(label="Background Image", type="filepath", interactive=True, scale=4)
+                            with gr.Row():
+                                height_a = gr.Number(label="Height", value=512, interactive=True)
+                                width_a = gr.Number(label="Width", value=768, interactive=True)
+
+                with gr.Tab("Settings"):
+                    with gr.Row():
+                        channel_a = gr.Radio(["mono", "stereo", "stereo effect"], label="Output Audio Channels", value="stereo", interactive=True, scale=1)
+                        sr_select_a = gr.Dropdown(["11025", "16000", "22050", "24000", "32000", "44100", "48000"], label="Output Audio Sample Rate", value="48000", interactive=True)
+                    with gr.Row():
+                        model_a = gr.Radio(["medium"], label="Model", value="medium", interactive=False, visible=False)
+                        decoder_a = gr.Radio(["Default"], label="Decoder", value="Default", interactive=False, visible=False)
+                    with gr.Row():
+                        topk_a = gr.Number(label="Top-k", value=250, interactive=True)
+                        topp_a = gr.Number(label="Top-p", value=0, interactive=True)
+                        temperature_a = gr.Number(label="Temperature", value=1.0, interactive=True)
+                        cfg_coef_a = gr.Number(label="Classifier Free Guidance", value=3.0, interactive=True)
+                with gr.Row():
+                    submit_a = gr.Button("Generate", variant="primary")
+                    _ = gr.Button("Interrupt").click(fn=interrupt, queue=False)
+            with gr.Column():
+                with gr.Tab("Output"):
+                    output_a = gr.Video(label="Generated Audio", scale=0)
+                    with gr.Row():
+                        audio_only_a = gr.Audio(type="numpy", label="Audio Only", interactive=False)
+                        backup_only_a = gr.Audio(type="numpy", label="Backup Audio", interactive=False, visible=False)
+                        send_audio_a = gr.Button("Send to Input Audio")
+                    seed_used_a = gr.Number(label='Seed used', value=-1, interactive=False)
+                    download_a = gr.File(label="Generated Files", interactive=False)
+                with gr.Tab("Wiki"):
+                    gr.Markdown(
+                        """
+                        - **[Generate (button)]:**  
+                        Generates the audio with the given settings and prompts.
+
+                        - **[Interrupt (button)]:**  
+                        Stops the audio generation as soon as it can, providing an incomplete output.
+
+                        ---
+
+                        ### Generation Tab:
+
+                        #### Structure Prompts:
+
+                        This feature helps reduce repetetive prompts by allowing you to set global prompts  
+                        that will be used for all prompt segments.
+
+                        - **[Structure Prompts (checkbox)]:**  
+                        Enable/Disable the structure prompts feature.
+
+                        - **[Global Prompt (text)]:**  
+                        Here write the prompt that you wish to be used for all prompt segments.
+
+                        #### Multi-Prompt: 
+                        
+                        This feature allows you to control the audio, adding variation to different time segments.  
+                        You have up to 10 prompt segments. the first prompt will always be 10s long  
+                        the other prompts will be [10s - overlap].  
+                        for example if the overlap is 2s, each prompt segment will be 8s.
+
+                        - **[Prompt Segments (number)]:**  
+                        Amount of unique prompt to generate throughout the audio generation.
+
+                        - **[Prompt/Input Text (prompt)]:**  
+                        Here describe the audio you wish the model to generate.
+
+                        - **[Repeat (number)]:**  
+                        Write how many times this prompt will repeat (instead of wasting another prompt segment on the same prompt).
+
+                        - **[Time (text)]:**  
+                        The time of the prompt segment.
+
+                        - **[Calculate Timings (button)]:**  
+                        Calculates the timings of the prompt segments.
+
+                        - **[Duration (number)]:**  
+                        How long you want the generated audio to be (in seconds).
+
+                        - **[Overlap (number)]:**  
+                        How much each new segment will reference the previous segment (in seconds).  
+                        For example, if you choose 2s: Each new segment after the first one will reference the previous segment 2s  
+                        and will generate only 8s of new audio. The model can only process 10s of music.
+
+                        - **[Seed (number)]:**  
+                        Your generated audio id. If you wish to generate the exact same audio,  
+                        place the exact seed with the exact prompts  
+                        (This way you can also extend specific song that was generated short).
+
+                        - **[Random Seed (button)]:**  
+                        Gives "-1" as a seed, which counts as a random seed.
+
+                        - **[Copy Previous Seed (button)]:**  
+                        Copies the seed from the output seed (if you don't feel like doing it manualy).
+
+                        ---
+
+                        ### Audio Tab:
+
+                        - **[Input Type (selection)]:**  
+                        `File` mode allows you to upload an audio file to use as input  
+                        `Mic` mode allows you to use your microphone as input
+
+                        - **[Trim Start and Trim End (numbers)]:**  
+                        `Trim Start` set how much you'd like to trim the input audio from the start  
+                        `Trim End` same as the above but from the end
+
+                        - **[Input Audio (audio file)]:**  
+                        Input here the audio you wish to use.
+
+                        ---
+
+                        ### Customization Tab:
+
+                        - **[Background Color (color)]:**  
+                        Works only if you don't upload image. Color of the background of the waveform.
+
+                        - **[Bar Color Start (color)]:**  
+                        First color of the waveform bars.
+
+                        - **[Bar Color End (color)]:**  
+                        Second color of the waveform bars.
+
+                        - **[Background Image (image)]:**  
+                        Background image that you wish to be attached to the generated video along with the waveform.
+
+                        - **[Height and Width (numbers)]:**  
+                        Output video resolution, only works with image.  
+                        (minimum height and width is 256).
+                        
+                        ---
 
-                            - Changed custom model loading to support the official trained models
+                        ### Settings Tab:
 
-                            - Additional changes from the main facebookresearch repo
+                        - **[Output Audio Channels (selection)]:**  
+                        With this you can select the amount of channels that you wish for your output audio.  
+                        `mono` is a straightforward single channel audio  
+                        `stereo` is a dual channel audio but it will sound more or less like mono  
+                        `stereo effect` this one is also dual channel but uses tricks to simulate a stereo audio.
 
+                        - **[Output Audio Sample Rate (dropdown)]:**  
+                        The output audio sample rate, the model default is 32000.
 
+                        - **[Top-k (number)]:**  
+                        is a parameter used in text generation models, including music generation models. It determines the number of most likely next tokens to consider at each step of the generation process. The model ranks all possible tokens based on their predicted probabilities, and then selects the top-k tokens from the ranked list. The model then samples from this reduced set of tokens to determine the next token in the generated sequence. A smaller value of k results in a more focused and deterministic output, while a larger value of k allows for more diversity in the generated music.
 
-                            ### v2.0.0a
+                        - **[Top-p (number)]:**  
+                        also known as nucleus sampling or probabilistic sampling, is another method used for token selection during text generation. Instead of specifying a fixed number like top-k, top-p considers the cumulative probability distribution of the ranked tokens. It selects the smallest possible set of tokens whose cumulative probability exceeds a certain threshold (usually denoted as p). The model then samples from this set to choose the next token. This approach ensures that the generated output maintains a balance between diversity and coherence, as it allows for a varying number of tokens to be considered based on their probabilities.
+                        
+                        - **[Temperature (number)]:**  
+                        is a parameter that controls the randomness of the generated output. It is applied during the sampling process, where a higher temperature value results in more random and diverse outputs, while a lower temperature value leads to more deterministic and focused outputs. In the context of music generation, a higher temperature can introduce more variability and creativity into the generated music, but it may also lead to less coherent or structured compositions. On the other hand, a lower temperature can produce more repetitive and predictable music.
 
-                            - Forgot to move all the update to app.py from temp2.py... oops
+                        - **[Classifier Free Guidance (number)]:**  
+                        refers to a technique used in some music generation models where a separate classifier network is trained to provide guidance or control over the generated music. This classifier is trained on labeled data to recognize specific musical characteristics or styles. During the generation process, the output of the generator model is evaluated by the classifier, and the generator is encouraged to produce music that aligns with the desired characteristics or style. This approach allows for more fine-grained control over the generated music, enabling users to specify certain attributes they want the model to capture.
+                        """
+                    )
+    with gr.Tab("Audio Info"):
+        gr.Markdown(
+            """
+            ### Audio Info
+            """
+        )
+        with gr.Row():
+            with gr.Column():
+                in_audio = gr.File(type="file", label="Input Any Audio", interactive=True)
+                with gr.Row():
+                    send_gen = gr.Button("Send to MusicGen", variant="primary")
+                    send_gen_a = gr.Button("Send to AudioGen", variant="primary")
+            with gr.Column():
+                info = gr.Textbox(label="Audio Info", lines=10, interactive=False)
+    with gr.Tab("Changelog"):
+        gr.Markdown(
+                        """
+                        ## Changelog:
 
+                        ### v2.0.1
 
+                        - Changed custom model loading to support the official trained models
 
-                            ### v2.0.0
+                        - Additional changes from the main facebookresearch repo
 
-                            - Changed name from MusicGen+ to AudioCraft Plus
-                            
-                            - Complete overhaul of the repo "backend" with the latest changes from the main facebookresearch repo
 
-                            - Added a new decoder: MultiBand_Diffusion
 
-                            - Added AudioGen: a new tab for generating audio
+                        ### v2.0.0a
 
+                        - Forgot to move all the update to app.py from temp2.py... oops
 
 
-                            ### v1.2.8c
 
-                            - Implemented Reverse compatibility for audio info tab with previous versions
+                        ### v2.0.0
 
+                        - Changed name from MusicGen+ to AudioCraft Plus
+                        
+                        - Complete overhaul of the repo "backend" with the latest changes from the main facebookresearch repo
 
+                        - Added a new decoder: MultiBand_Diffusion
 
-                            ### v1.2.8b
+                        - Added AudioGen: a new tab for generating audio
 
-                            - Fixed the error when loading default models
 
 
+                        ### v1.2.8c
 
-                            ### v1.2.8a
+                        - Implemented Reverse compatibility for audio info tab with previous versions
 
-                            - Adapted Audio info tab to work with the new structure prompts feature
 
-                            - Now custom models actually work, make sure you select the correct base model
 
+                        ### v1.2.8b
 
+                        - Fixed the error when loading default models
 
-                            ### v1.2.8
 
-                            - Now you will also recieve json file with metadata of generated audio
 
-                            - Added error messages in Audio Info tab
+                        ### v1.2.8a
 
-                            - Added structure prompts: you can select bpm, key and global prompt for all prompts
+                        - Adapted Audio info tab to work with the new structure prompts feature
 
-                            - Added time display next to each prompt, can be calculated with "Calculate Timings" button
+                        - Now custom models actually work, make sure you select the correct base model
 
 
 
-                            ### v1.2.7
+                        ### v1.2.8
 
-                            - When sending generated audio to Input Audio, it will send a backup audio with default settings  
-                            (best for continuos generation)
+                        - Now you will also recieve json file with metadata of generated audio
 
-                            - Added Metadata to generated audio (Thanks to AlexHK ♥)
+                        - Added error messages in Audio Info tab
 
-                            - Added Audio Info tab that will display the metadata of the input audio
+                        - Added structure prompts: you can select bpm, key and global prompt for all prompts
 
-                            - Added "send to Text2Audio" button in Audio Info tab
+                        - Added time display next to each prompt, can be calculated with "Calculate Timings" button
 
-                            - Generated audio is now stored in the "output" folder (Thanks to AlexHK ♥)
 
-                            - Added an output area with generated files and download buttons
 
-                            - Enhanced Stereo effect (Thanks to AlexHK ♥)
+                        ### v1.2.7
 
+                        - When sending generated audio to Input Audio, it will send a backup audio with default settings  
+                        (best for continuos generation)
 
+                        - Added Metadata to generated audio (Thanks to AlexHK ♥)
 
-                            ### v1.2.6
+                        - Added Audio Info tab that will display the metadata of the input audio
 
-                            - Added option to generate in stereo (instead of only mono)
+                        - Added "send to Text2Audio" button in Audio Info tab
 
-                            - Added dropdown for selecting output sample rate (model default is 32000)
+                        - Generated audio is now stored in the "output" folder (Thanks to AlexHK ♥)
 
+                        - Added an output area with generated files and download buttons
 
+                        - Enhanced Stereo effect (Thanks to AlexHK ♥)
 
-                            ### v1.2.5a
 
-                            - Added file cleaner (This comes from the main facebookresearch repo)
 
-                            - Reorganized a little, moved audio to a seperate tab
+                        ### v1.2.6
 
+                        - Added option to generate in stereo (instead of only mono)
 
+                        - Added dropdown for selecting output sample rate (model default is 32000)
 
-                            ### v1.2.5
 
-                            - Gave a unique lime theme to the webui
-                            
-                            - Added additional output for audio only
 
-                            - Added button to send generated audio to Input Audio
+                        ### v1.2.5a
 
-                            - Added option to trim Input Audio
+                        - Added file cleaner (This comes from the main facebookresearch repo)
 
+                        - Reorganized a little, moved audio to a seperate tab
 
 
-                            ### v1.2.4
 
-                            - Added mic input (This comes from the main facebookresearch repo)
+                        ### v1.2.5
 
+                        - Gave a unique lime theme to the webui
+                        
+                        - Added additional output for audio only
 
+                        - Added button to send generated audio to Input Audio
 
-                            ### v1.2.3
+                        - Added option to trim Input Audio
 
-                            - Added option to change video size to fit the image you upload
 
 
+                        ### v1.2.4
 
-                            ### v1.2.2
+                        - Added mic input (This comes from the main facebookresearch repo)
 
-                            - Added Wiki, Changelog and About tabs
 
 
+                        ### v1.2.3
 
-                            ### v1.2.1
+                        - Added option to change video size to fit the image you upload
 
-                            - Added tabs and organized the entire interface
 
-                            - Added option to attach image to the output video
 
-                            - Added option to load fine-tuned models (Yet to be tested)
+                        ### v1.2.2
 
+                        - Added Wiki, Changelog and About tabs
 
 
-                            ### v1.2.0
 
-                            - Added Multi-Prompt
+                        ### v1.2.1
 
+                        - Added tabs and organized the entire interface
 
+                        - Added option to attach image to the output video
 
-                            ### v1.1.3
+                        - Added option to load fine-tuned models (Yet to be tested)
 
-                            - Added customization options for generated waveform
 
 
+                        ### v1.2.0
 
-                            ### v1.1.2
+                        - Added Multi-Prompt
 
-                            - Removed sample length limit: now you can input audio of any length as music sample
 
 
+                        ### v1.1.3
 
-                            ### v1.1.1
+                        - Added customization options for generated waveform
 
-                            - Improved music sample audio quality when using music continuation
 
 
+                        ### v1.1.2
 
-                            ### v1.1.0
+                        - Removed sample length limit: now you can input audio of any length as music sample
 
-                            - Rebuilt the repo on top of the latest structure of the main MusicGen repo
-                            
-                            - Improved Music continuation feature
 
 
+                        ### v1.1.1
 
-                            ### v1.0.0 - Stable Version
+                        - Improved music sample audio quality when using music continuation
 
-                            - Added Music continuation
-                            """
-                        )
-        with gr.Tab("About"):
-            gen_type = gr.Text(value="music", interactive=False, visible=False)
-            gen_type_a = gr.Text(value="audio", interactive=False, visible=False)
-            gr.Markdown(
-                            """
-                            This is your private demo for [MusicGen](https://github.com/facebookresearch/audiocraft), a simple and controllable model for music generation
-                            presented at: ["Simple and Controllable Music Generation"](https://huggingface.co/papers/2306.05284)
-                            
-                            ## MusicGen+ is an extended version of the original MusicGen by facebookresearch. 
-                            
-                            ### Repo: https://github.com/GrandaddyShmax/audiocraft_plus/tree/plus
 
-                            ---
-                            
-                            ### This project was possible thanks to:
 
-                            #### GrandaddyShmax - https://github.com/GrandaddyShmax
+                        ### v1.1.0
 
-                            #### Camenduru - https://github.com/camenduru
+                        - Rebuilt the repo on top of the latest structure of the main MusicGen repo
+                        
+                        - Improved Music continuation feature
 
-                            #### rkfg - https://github.com/rkfg
 
-                            #### oobabooga - https://github.com/oobabooga
-                            
-                            #### AlexHK - https://github.com/alanhk147
-                            """
-                        )
 
-        send_gen.click(info_to_params, inputs=[in_audio], outputs=[decoder, struc_prompts, global_prompt, bpm, key, scale, model, dropdown, s, prompts[0], prompts[1], prompts[2], prompts[3], prompts[4], prompts[5], prompts[6], prompts[7], prompts[8], prompts[9], repeats[0], repeats[1], repeats[2], repeats[3], repeats[4], repeats[5], repeats[6], repeats[7], repeats[8], repeats[9], mode, duration, topk, topp, temperature, cfg_coef, seed, overlap, channel, sr_select], queue=False)
-        reuse_seed.click(fn=lambda x: x, inputs=[seed_used], outputs=[seed], queue=False)
-        send_audio.click(fn=lambda x: x, inputs=[backup_only], outputs=[audio], queue=False)
-        submit.click(predict_full, inputs=[gen_type, model, decoder, dropdown, s, struc_prompts, bpm, key, scale, global_prompt, prompts[0], prompts[1], prompts[2], prompts[3], prompts[4], prompts[5], prompts[6], prompts[7], prompts[8], prompts[9], repeats[0], repeats[1], repeats[2], repeats[3], repeats[4], repeats[5], repeats[6], repeats[7], repeats[8], repeats[9], audio, mode, trim_start, trim_end, duration, topk, topp, temperature, cfg_coef, seed, overlap, image, height, width, background, bar1, bar2, channel, sr_select], outputs=[output, audio_only, backup_only, download, seed_used])
-        input_type.change(toggle_audio_src, input_type, [audio], queue=False, show_progress=False)
-        to_calc.click(calc_time, inputs=[gen_type, s, duration, overlap, repeats[0], repeats[1], repeats[2], repeats[3], repeats[4], repeats[5], repeats[6], repeats[7], repeats[8], repeats[9]], outputs=[calcs[0], calcs[1], calcs[2], calcs[3], calcs[4], calcs[5], calcs[6], calcs[7], calcs[8], calcs[9]], queue=False)
+                        ### v1.0.0 - Stable Version
 
-        send_gen_a.click(info_to_params_a, inputs=[in_audio], outputs=[decoder_a, struc_prompts_a, global_prompt_a, s_a, prompts_a[0], prompts_a[1], prompts_a[2], prompts_a[3], prompts_a[4], prompts_a[5], prompts_a[6], prompts_a[7], prompts_a[8], prompts_a[9], repeats_a[0], repeats_a[1], repeats_a[2], repeats_a[3], repeats_a[4], repeats_a[5], repeats_a[6], repeats_a[7], repeats_a[8], repeats_a[9], duration_a, topk_a, topp_a, temperature_a, cfg_coef_a, seed_a, overlap_a, channel_a, sr_select_a], queue=False)
-        reuse_seed_a.click(fn=lambda x: x, inputs=[seed_used_a], outputs=[seed_a], queue=False)
-        send_audio_a.click(fn=lambda x: x, inputs=[backup_only_a], outputs=[audio_a], queue=False)
-        submit_a.click(predict_full, inputs=[gen_type_a, model_a, decoder_a, dropdown, s_a, struc_prompts_a, bpm, key, scale, global_prompt_a, prompts_a[0], prompts_a[1], prompts_a[2], prompts_a[3], prompts_a[4], prompts_a[5], prompts_a[6], prompts_a[7], prompts_a[8], prompts_a[9], repeats_a[0], repeats_a[1], repeats_a[2], repeats_a[3], repeats_a[4], repeats_a[5], repeats_a[6], repeats_a[7], repeats_a[8], repeats_a[9], audio_a, mode_a, trim_start_a, trim_end_a, duration_a, topk_a, topp_a, temperature_a, cfg_coef_a, seed_a, overlap_a, image_a, height_a, width_a, background_a, bar1_a, bar2_a, channel_a, sr_select_a], outputs=[output_a, audio_only_a, backup_only_a, download_a, seed_used_a])
-        input_type_a.change(toggle_audio_src, input_type_a, [audio_a], queue=False, show_progress=False)
-        to_calc_a.click(calc_time, inputs=[gen_type_a, s_a, duration_a, overlap_a, repeats_a[0], repeats_a[1], repeats_a[2], repeats_a[3], repeats_a[4], repeats_a[5], repeats_a[6], repeats_a[7], repeats_a[8], repeats_a[9]], outputs=[calcs_a[0], calcs_a[1], calcs_a[2], calcs_a[3], calcs_a[4], calcs_a[5], calcs_a[6], calcs_a[7], calcs_a[8], calcs_a[9]], queue=False)
+                        - Added Music continuation
+                        """
+                    )
+    with gr.Tab("About"):
+        gen_type = gr.Text(value="music", interactive=False, visible=False)
+        gen_type_a = gr.Text(value="audio", interactive=False, visible=False)
+        gr.Markdown(
+                        """
+                        This is your private demo for [MusicGen](https://github.com/facebookresearch/audiocraft), a simple and controllable model for music generation
+                        presented at: ["Simple and Controllable Music Generation"](https://huggingface.co/papers/2306.05284)
+                        
+                        ## MusicGen+ is an extended version of the original MusicGen by facebookresearch. 
+                        
+                        ### Repo: https://github.com/GrandaddyShmax/audiocraft_plus/tree/plus
 
-        in_audio.change(get_audio_info, in_audio, outputs=[info])
+                        ---
+                        
+                        ### This project was possible thanks to:
 
-        def variable_outputs(k):
-            k = int(k) - 1
-            return [gr.Textbox.update(visible=True)]*k + [gr.Textbox.update(visible=False)]*(max_textboxes-k)
-        def get_size(image):
-            if image is not None:
-                img = Image.open(image)
-                img_height = img.height
-                img_width = img.width
-                if (img_height%2) != 0:
-                    img_height = img_height + 1
-                if (img_width%2) != 0:
-                    img_width = img_width + 1
-                return img_height, img_width
-            else:
-                return 512, 768
+                        #### GrandaddyShmax - https://github.com/GrandaddyShmax
 
-        image.change(get_size, image, outputs=[height, width])
-        image_a.change(get_size, image_a, outputs=[height_a, width_a])
-        s.change(variable_outputs, s, textboxes)
-        s_a.change(variable_outputs, s_a, textboxes_a)
-        interface.queue().launch(**launch_kwargs)
+                        #### Camenduru - https://github.com/camenduru
+
+                        #### rkfg - https://github.com/rkfg
+
+                        #### oobabooga - https://github.com/oobabooga
+                        
+                        #### AlexHK - https://github.com/alanhk147
+                        """
+                    )
+
+    send_gen.click(info_to_params, inputs=[in_audio], outputs=[decoder, struc_prompts, global_prompt, bpm, key, scale, model, dropdown, s, prompts[0], prompts[1], prompts[2], prompts[3], prompts[4], prompts[5], prompts[6], prompts[7], prompts[8], prompts[9], repeats[0], repeats[1], repeats[2], repeats[3], repeats[4], repeats[5], repeats[6], repeats[7], repeats[8], repeats[9], mode, duration, topk, topp, temperature, cfg_coef, seed, overlap, channel, sr_select], queue=False)
+    reuse_seed.click(fn=lambda x: x, inputs=[seed_used], outputs=[seed], queue=False)
+    send_audio.click(fn=lambda x: x, inputs=[backup_only], outputs=[audio], queue=False)
+    submit.click(predict_full, inputs=[gen_type, model, decoder, dropdown, s, struc_prompts, bpm, key, scale, global_prompt, prompts[0], prompts[1], prompts[2], prompts[3], prompts[4], prompts[5], prompts[6], prompts[7], prompts[8], prompts[9], repeats[0], repeats[1], repeats[2], repeats[3], repeats[4], repeats[5], repeats[6], repeats[7], repeats[8], repeats[9], audio, mode, trim_start, trim_end, duration, topk, topp, temperature, cfg_coef, seed, overlap, image, height, width, background, bar1, bar2, channel, sr_select], outputs=[output, audio_only, backup_only, download, seed_used])
+    input_type.change(toggle_audio_src, input_type, [audio], queue=False, show_progress=False)
+    to_calc.click(calc_time, inputs=[gen_type, s, duration, overlap, repeats[0], repeats[1], repeats[2], repeats[3], repeats[4], repeats[5], repeats[6], repeats[7], repeats[8], repeats[9]], outputs=[calcs[0], calcs[1], calcs[2], calcs[3], calcs[4], calcs[5], calcs[6], calcs[7], calcs[8], calcs[9]], queue=False)
+
+    send_gen_a.click(info_to_params_a, inputs=[in_audio], outputs=[decoder_a, struc_prompts_a, global_prompt_a, s_a, prompts_a[0], prompts_a[1], prompts_a[2], prompts_a[3], prompts_a[4], prompts_a[5], prompts_a[6], prompts_a[7], prompts_a[8], prompts_a[9], repeats_a[0], repeats_a[1], repeats_a[2], repeats_a[3], repeats_a[4], repeats_a[5], repeats_a[6], repeats_a[7], repeats_a[8], repeats_a[9], duration_a, topk_a, topp_a, temperature_a, cfg_coef_a, seed_a, overlap_a, channel_a, sr_select_a], queue=False)
+    reuse_seed_a.click(fn=lambda x: x, inputs=[seed_used_a], outputs=[seed_a], queue=False)
+    send_audio_a.click(fn=lambda x: x, inputs=[backup_only_a], outputs=[audio_a], queue=False)
+    submit_a.click(predict_full, inputs=[gen_type_a, model_a, decoder_a, dropdown, s_a, struc_prompts_a, bpm, key, scale, global_prompt_a, prompts_a[0], prompts_a[1], prompts_a[2], prompts_a[3], prompts_a[4], prompts_a[5], prompts_a[6], prompts_a[7], prompts_a[8], prompts_a[9], repeats_a[0], repeats_a[1], repeats_a[2], repeats_a[3], repeats_a[4], repeats_a[5], repeats_a[6], repeats_a[7], repeats_a[8], repeats_a[9], audio_a, mode_a, trim_start_a, trim_end_a, duration_a, topk_a, topp_a, temperature_a, cfg_coef_a, seed_a, overlap_a, image_a, height_a, width_a, background_a, bar1_a, bar2_a, channel_a, sr_select_a], outputs=[output_a, audio_only_a, backup_only_a, download_a, seed_used_a])
+    input_type_a.change(toggle_audio_src, input_type_a, [audio_a], queue=False, show_progress=False)
+    to_calc_a.click(calc_time, inputs=[gen_type_a, s_a, duration_a, overlap_a, repeats_a[0], repeats_a[1], repeats_a[2], repeats_a[3], repeats_a[4], repeats_a[5], repeats_a[6], repeats_a[7], repeats_a[8], repeats_a[9]], outputs=[calcs_a[0], calcs_a[1], calcs_a[2], calcs_a[3], calcs_a[4], calcs_a[5], calcs_a[6], calcs_a[7], calcs_a[8], calcs_a[9]], queue=False)
+
+    in_audio.change(get_audio_info, in_audio, outputs=[info])
+
+    def variable_outputs(k):
+        k = int(k) - 1
+        return [gr.Textbox.update(visible=True)]*k + [gr.Textbox.update(visible=False)]*(max_textboxes-k)
+    def get_size(image):
+        if image is not None:
+            img = Image.open(image)
+            img_height = img.height
+            img_width = img.width
+            if (img_height%2) != 0:
+                img_height = img_height + 1
+            if (img_width%2) != 0:
+                img_width = img_width + 1
+            return img_height, img_width
+        else:
+            return 512, 768
+
+    image.change(get_size, image, outputs=[height, width])
+    image_a.change(get_size, image_a, outputs=[height_a, width_a])
+    s.change(variable_outputs, s, textboxes)
+    s_a.change(variable_outputs, s_a, textboxes_a)
 
 
 def ui_batched(launch_kwargs):
