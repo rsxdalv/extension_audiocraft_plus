@@ -983,6 +983,9 @@ def ui_full(launch_kwargs):
         ui_full_inner()
     interface.queue().launch(**launch_kwargs)
 
+def extension__tts_generation_webui():
+    ui_full_inner()
+
 def ui_full_inner():
     gr.Markdown(
         """
