@@ -1003,7 +1003,7 @@ def extension__tts_generation_webui():
 def ui_full_inner():
     gr.Markdown(
         """
-        # AudioCraft Plus - v2.0.1
+        # AudioCraft Plus - v2.0.2
 
         ### An All-in-One AudioCraft WebUI
 
