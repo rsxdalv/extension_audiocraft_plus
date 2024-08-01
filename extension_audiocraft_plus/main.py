@@ -991,7 +991,7 @@ def extension__tts_generation_webui():
         "requirements": "--dry-run temp\\extension_audiocraft_plus",
         "description": "AudioCraft Plus is an all-in-one WebUI for the original AudioCraft, adding many quality features on top.",
         "website": "https://github.com/GrandaddyShmax/audiocraft_plus",
-        "version": "2.0.1",
+        "version": "2.0.2",
         "name": "AudioCraft Plus",
         "author": "GrandaddyShmax",
         "extension_website": "https://github.com/rsxdalv/extension_audiocraft_plus",
