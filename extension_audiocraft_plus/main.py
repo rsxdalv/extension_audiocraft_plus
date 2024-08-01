@@ -946,7 +946,7 @@ def predict_full(gen_type, model, decoder, custom_model, prompt_amount, struc_pr
         ind = ind + 1
 
     outs, outs_audio, outs_backup, input_length = _do_predictions(
-        gen_type, [texts], [melody], sample, trim_start, trim_end, duration, image, height, width, background, bar1, bar2, channel, sr_select, progress=True,
+        gen_type, texts, [melody], sample, trim_start, trim_end, duration, image, height, width, background, bar1, bar2, channel, sr_select, progress=True,
         top_k=topk, top_p=topp, temperature=temperature, cfg_coef=cfg_coef, extend_stride=MODEL.max_duration-overlap)
     tags = [str(global_prompt), str(bpm), str(key), str(scale), str(raw_texts), str(duration), str(overlap), str(seed), str(audio_mode), str(input_length), str(channel), str(sr_select), str(model_shrt), str(custom_model_shrt), str(decoder), str(topk), str(topp), str(temperature), str(cfg_coef), str(gen_type)]
     wav_target, mp4_target, json_target = save_outputs(outs[0], outs_audio[0], tags, gen_type);
