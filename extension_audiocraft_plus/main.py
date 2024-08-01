@@ -36,7 +36,7 @@ from audiocraft.models import AudioGen, MusicGen, MultiBandDiffusion
 # from audiocraft.utils import ui
 import random, string
 
-version = "2.0.1"
+version = "2.0.3"
 
 theme = gr.themes.Base(
     primary_hue="lime",
@@ -641,7 +641,7 @@ def _do_predictions(gen_type, texts, melodies, sample, trim_start, trim_end, dur
             if channel == "stereo effect":
                 make_pseudo_stereo(file.name, sr_select, pan=True, delay=True);
 
-            out_files.append(pool.submit(make_waveform, file.name, bg_image=image, bg_color=background, bars_color=(bar1, bar2), fg_alpha=1.0, bar_count=75, height=height, width=width))
+            out_files.append(make_waveform(file.name, bg_image=image, bg_color=background, bars_color=(bar1, bar2), fg_alpha=1.0, bar_count=75, height=height, width=width))
             out_audios.append(file.name)
             file_cleaner.add(file.name)
             print(f'wav: {file.name}')
@@ -652,7 +652,7 @@ def _do_predictions(gen_type, texts, melodies, sample, trim_start, trim_end, dur
                 loudness_headroom_db=16, loudness_compressor=True, add_suffix=False)
             out_backup.append(file.name)
             file_cleaner.add(file.name)
-    res = [out_file.result() for out_file in out_files]
+    res = out_files
     res_audio = out_audios
     res_backup = out_backup
     for file in res:
@@ -991,7 +991,7 @@ def extension__tts_generation_webui():
         "requirements": "--dry-run temp\\extension_audiocraft_plus",
         "description": "AudioCraft Plus is an all-in-one WebUI for the original AudioCraft, adding many quality features on top.",
         "website": "https://github.com/GrandaddyShmax/audiocraft_plus",
-        "version": "2.0.2",
+        "version": "2.0.3",
         "name": "AudioCraft Plus",
         "author": "GrandaddyShmax",
         "extension_website": "https://github.com/rsxdalv/extension_audiocraft_plus",
@@ -1003,7 +1003,7 @@ def extension__tts_generation_webui():
 def ui_full_inner():
     gr.Markdown(
         """
-        # AudioCraft Plus - v2.0.2
+        # AudioCraft Plus - v2.0.3
 
         ### An All-in-One AudioCraft WebUI
 
