@@ -36,7 +36,7 @@ from audiocraft.models import AudioGen, MusicGen, MultiBandDiffusion
 # from audiocraft.utils import ui
 import random, string
 
-version = "2.0.4"
+version = "2.0.1"
 
 theme = gr.themes.Base(
     primary_hue="lime",
@@ -62,24 +62,12 @@ MBD = None
 # We have to wrap subprocess call to clean a bit the log when using gr.make_waveform
 _old_call = sp.call
 
-models_dir = os.path.join("data", "models", "audiocraft_plus")
-os.makedirs(models_dir, exist_ok=True)
-
 from pathlib import Path
 
 import gradio as gr
 import torch
 
 refresh_symbol = '\U0001f504'  # 🔄
-
-class ToolButton(gr.Button, gr.components.IOComponent):
-    """Small button with single emoji as text, fits inside gradio forms"""
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def get_block_name(self):
-        return "button"
 
 
 def create_refresh_button(refresh_component, refresh_method, refreshed_args, elem_class):
@@ -92,7 +80,7 @@ def create_refresh_button(refresh_component, refresh_method, refreshed_args, ele
 
         return gr.update(**(args or {}))
 
-    refresh_button = ToolButton(value=refresh_symbol, elem_classes=elem_class, scale=1, size="sm", container=False)
+    refresh_button = gr.Button(value=refresh_symbol, elem_classes=elem_class, scale=1, size="sm")
     refresh_button.click(
         fn=refresh,
         inputs=[],
@@ -860,8 +848,7 @@ def predict_full(gen_type, model, decoder, custom_model, prompt_amount, struc_pr
         custom_model_shrt = "none"
     elif gen_type == "music":
         custom_model_shrt = custom_model
-        custom_model = os.path.join(models_dir, custom_model)
-        # custom_model = "models/" + custom_model
+        custom_model = "models/" + custom_model
 
     if temperature < 0:
         raise gr.Error("Temperature must be >= 0.")
@@ -971,7 +958,7 @@ max_textboxes = 10
 
 
 def get_available_folders():
-    models_dir = os.path.join("data", "models", "audiocraft_plus")
+    models_dir = "models"
     folders = [f for f in os.listdir(models_dir) if os.path.isdir(os.path.join(models_dir, f))]
     return sorted(folders)
 
@@ -995,7 +982,7 @@ def extension__tts_generation_webui():
         "requirements": "--dry-run temp\\extension_audiocraft_plus",
         "description": "AudioCraft Plus is an all-in-one WebUI for the original AudioCraft, adding many quality features on top.",
         "website": "https://github.com/GrandaddyShmax/audiocraft_plus",
-        "version": "2.0.4",
+        "version": "2.0.2",
         "name": "AudioCraft Plus",
         "author": "GrandaddyShmax",
         "extension_website": "https://github.com/rsxdalv/extension_audiocraft_plus",
@@ -1007,7 +994,7 @@ def extension__tts_generation_webui():
 def ui_full_inner():
     gr.Markdown(
         """
-        # AudioCraft Plus - v2.0.4
+        # AudioCraft Plus - v2.0.2
 
         ### An All-in-One AudioCraft WebUI
 
