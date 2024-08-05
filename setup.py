@@ -4,7 +4,7 @@ import setuptools
 setuptools.setup(
     name="extension_audiocraft_plus",
     packages=setuptools.find_namespace_packages(),
-    version="2.0.5",
+    version="2.0.6",
     author="lj1995",
     description="An easy-to-use Voice Conversion framework based on VITS",
     url="https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI",

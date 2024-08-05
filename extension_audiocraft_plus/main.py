@@ -36,7 +36,7 @@ from audiocraft.models import AudioGen, MusicGen, MultiBandDiffusion
 # from audiocraft.utils import ui
 import random, string
 
-version = "2.0.5"
+version = "2.0.6"
 
 theme = gr.themes.Base(
     primary_hue="lime",
@@ -986,7 +986,7 @@ def extension__tts_generation_webui():
         "requirements": "--dry-run temp\\extension_audiocraft_plus",
         "description": "AudioCraft Plus is an all-in-one WebUI for the original AudioCraft, adding many quality features on top.",
         "website": "https://github.com/GrandaddyShmax/audiocraft_plus",
-        "version": "2.0.5",
+        "version": "2.0.6",
         "name": "AudioCraft Plus",
         "author": "GrandaddyShmax",
         "extension_website": "https://github.com/rsxdalv/extension_audiocraft_plus",
@@ -998,7 +998,7 @@ def extension__tts_generation_webui():
 def ui_full_inner():
     gr.Markdown(
         """
-        # AudioCraft Plus - v2.0.5
+        # AudioCraft Plus - v2.0.6
 
         ### An All-in-One AudioCraft WebUI
 
@@ -1493,7 +1493,7 @@ def ui_full_inner():
         )
         with gr.Row():
             with gr.Column():
-                in_audio = gr.File(type="file", label="Input Any Audio", interactive=True)
+                in_audio = gr.File(type="filepath", label="Input Any Audio", interactive=True)
                 with gr.Row():
                     send_gen = gr.Button("Send to MusicGen", variant="primary")
                     send_gen_a = gr.Button("Send to AudioGen", variant="primary")
