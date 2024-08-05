@@ -36,7 +36,7 @@ from audiocraft.models import AudioGen, MusicGen, MultiBandDiffusion
 # from audiocraft.utils import ui
 import random, string
 
-version = "2.0.1"
+version = "2.0.5"
 
 theme = gr.themes.Base(
     primary_hue="lime",
@@ -61,6 +61,9 @@ INTERRUPTING = False
 MBD = None
 # We have to wrap subprocess call to clean a bit the log when using gr.make_waveform
 _old_call = sp.call
+
+models_dir = os.path.join("data", "models", "audiocraft_plus")
+os.makedirs(models_dir, exist_ok=True)
 
 from pathlib import Path
 
@@ -848,7 +851,8 @@ def predict_full(gen_type, model, decoder, custom_model, prompt_amount, struc_pr
         custom_model_shrt = "none"
     elif gen_type == "music":
         custom_model_shrt = custom_model
-        custom_model = "models/" + custom_model
+        custom_model = os.path.join(models_dir, custom_model)
+        # custom_model = "models/" + custom_model
 
     if temperature < 0:
         raise gr.Error("Temperature must be >= 0.")
@@ -958,16 +962,16 @@ max_textboxes = 10
 
 
 def get_available_folders():
-    models_dir = "models"
+    models_dir = os.path.join("data", "models", "audiocraft_plus")
     folders = [f for f in os.listdir(models_dir) if os.path.isdir(os.path.join(models_dir, f))]
     return sorted(folders)
 
 
 def toggle_audio_src(choice):
     if choice == "mic":
-        return gr.update(source="microphone", value=None, label="Microphone")
+        return gr.update(sources="microphone", value=None, label="Microphone")
     else:
-        return gr.update(source="upload", value=None, label="File")
+        return gr.update(sources="upload", value=None, label="File")
 
 def ui_full(launch_kwargs):
     with gr.Blocks(title='AudioCraft Plus', theme=theme) as interface:
@@ -982,7 +986,7 @@ def extension__tts_generation_webui():
         "requirements": "--dry-run temp\\extension_audiocraft_plus",
         "description": "AudioCraft Plus is an all-in-one WebUI for the original AudioCraft, adding many quality features on top.",
         "website": "https://github.com/GrandaddyShmax/audiocraft_plus",
-        "version": "2.0.2",
+        "version": "2.0.5",
         "name": "AudioCraft Plus",
         "author": "GrandaddyShmax",
         "extension_website": "https://github.com/rsxdalv/extension_audiocraft_plus",
@@ -994,7 +998,7 @@ def extension__tts_generation_webui():
 def ui_full_inner():
     gr.Markdown(
         """
-        # AudioCraft Plus - v2.0.2
+        # AudioCraft Plus - v2.0.5
 
         ### An All-in-One AudioCraft WebUI
 
@@ -1061,7 +1065,7 @@ def ui_full_inner():
                             with gr.Row():
                                 trim_start = gr.Number(label="Trim Start", value=0, interactive=True)
                                 trim_end = gr.Number(label="Trim End", value=0, interactive=True)
-                        audio = gr.Audio(source="upload", type="numpy", label="Input Audio (optional)", interactive=True)
+                        audio = gr.Audio(sources="upload", type="numpy", label="Input Audio (optional)", interactive=True)
 
                 with gr.Tab("Customization"):
                     with gr.Row():
@@ -1317,7 +1321,7 @@ def ui_full_inner():
                             with gr.Row():
                                 trim_start_a = gr.Number(label="Trim Start", value=0, interactive=True)
                                 trim_end_a = gr.Number(label="Trim End", value=0, interactive=True)
-                        audio_a = gr.Audio(source="upload", type="numpy", label="Input Audio (optional)", interactive=True)
+                        audio_a = gr.Audio(sources="upload", type="numpy", label="Input Audio (optional)", interactive=True)
 
                 with gr.Tab("Customization"):
                     with gr.Row():
@@ -1760,7 +1764,7 @@ def ui_batched(launch_kwargs):
                     with gr.Column():
                         radio = gr.Radio(["file", "mic"], value="file",
                                          label="Condition on a melody (optional) File or Mic")
-                        melody = gr.Audio(source="upload", type="numpy", label="File",
+                        melody = gr.Audio(sources="upload", type="numpy", label="File",
                                           interactive=True, elem_id="melody-input")
                 with gr.Row():
                     submit = gr.Button("Generate")
