@@ -36,3 +36,8 @@ with gr.Blocks() as demo:
 https://github.com/GrandaddyShmax/audiocraft_plus
 
 ## This repository functions as an extension to tts-generation-webui on the 'main' branch. The 'legacy' branch is the installable package.
+
+
+## Changelog
+
+* Delay loading the audiocraft module until it is necessary.

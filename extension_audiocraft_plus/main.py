@@ -30,13 +30,10 @@ import gradio as gr
 import numpy as np
 import typing as tp
 
-from audiocraft.data.audio_utils import convert_audio
-from audiocraft.data.audio import audio_write
-from audiocraft.models import AudioGen, MusicGen, MultiBandDiffusion
 # from audiocraft.utils import ui
 import random, string
 
-version = "2.0.6"
+version = "2.0.7"
 
 theme = gr.themes.Base(
     primary_hue="lime",
@@ -172,6 +169,8 @@ def make_waveform(*args, **kwargs):
 
 
 def load_model(version='GrandaddyShmax/musicgen-melody', custom_model=None, gen_type="music"):
+    from audiocraft.models import AudioGen, MusicGen
+
     global MODEL, MODELS
     print("Loading model", version)
     if MODELS is None:
@@ -486,6 +485,8 @@ def normalize_audio(audio_data):
 
 
 def load_diffusion():
+    from audiocraft.models.multibanddiffusion import MultiBandDiffusion
+
     global MBD
     if MBD is None:
         print("loading MBD")
@@ -500,6 +501,9 @@ def unload_diffusion():
 
 
 def _do_predictions(gen_type, texts, melodies, sample, trim_start, trim_end, duration, image, height, width, background, bar1, bar2, channel, sr_select, progress=False, **gen_kwargs):
+    from audiocraft.data.audio_utils import convert_audio
+    from audiocraft.data.audio import audio_write
+
     if gen_type == "music":
         maximum_size = 29.5
     elif gen_type == "audio":
